@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valoración afectiva de situaciones</title>
+
+<script src="https://unpkg.com/jspsych@8.3.0"></script>
+<script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
+<script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script>
+<script src="https://unpkg.com/@jspsych/plugin-survey-likert@2.2.0"></script>
+<script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.1.0"></script>
+<script src="https://unpkg.com/@jspsych-contrib/plugin-pipe@0.6.0"></script>
+<link rel="stylesheet" href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css">
+
+<script src="estimulos.js"></script>
+
+<style>
+  :root { --sam: clamp(30px, 9.2vw, 52px); }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .jspsych-content { max-width: 720px; }
+
+  .texto {
+    font-size: 1.15rem; line-height: 1.55; text-align: left;
+    background: #f7f7f5; border-left: 4px solid #888;
+    padding: 14px 16px; margin-bottom: 22px;
+  }
+  .dim-label { text-align: left; font-size: .92rem; color: #333;
+               margin: 14px 0 4px; font-weight: 600; }
+  .sam-row { display: flex; gap: 3px; justify-content: center; }
+  .sam-opt { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+  .sam-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .sam-opt img { width: var(--sam); height: auto; display: block;
+                 border: 2px solid transparent; border-radius: 4px; }
+  .sam-opt:hover img { border-color: #b9c4cf; }
+  .sam-opt input:checked ~ img { border-color: #1a56d6; background: #e6efff; }
+  .sam-opt .num { font-size: .72rem; color: #666; margin-top: 2px; }
+  .anclas { display: flex; justify-content: space-between;
+            font-size: .75rem; color: #666; margin-top: 2px; }
+  .aviso { color: #c0392b; font-size: .85rem; min-height: 1.2em; margin-top: 10px; }
+  .instr { text-align: left; line-height: 1.6; }
+</style>
+<script>
+window.addEventListener("error", function (e) {
+  document.body.innerHTML =
+    '<div style="font-family:monospace;padding:24px;max-width:700px;margin:40px auto;' +
+    'text-align:left;background:#fff3f3;border:1px solid #c0392b;color:#7b241c">' +
+    '<b>Error de JavaScript</b><br><br>' + (e.message || e) +
+    '<br><br><small>' + (e.filename || '') + ' linea ' + (e.lineno || '?') + '</small></div>';
+});
+</script>
+</head>
+<body></body>
+
+<script>
+// ============================================================
+// CONFIGURACION
+// ============================================================
+const DATAPIPE_ID = "CAMBIAR_POR_TU_ID";   // <-- pegar el ID de DataPipe acá
+
+// true  = muestra solo el nombre del estimulo (para pilotear flujo y layout)
+// false = muestra el texto real
+const MOSTRAR_SOLO_ID = true;
+
+const IMGS = [
+  "img/val_1.png","img/val_3.png","img/val_5.png","img/val_7.png","img/val_9.png",
+  "img/aro_1.png","img/aro_3.png","img/aro_5.png","img/aro_7.png","img/aro_9.png",
+  "img/sam_intermedio.png"
+];
+
+const jsPsych = initJsPsych({
+  show_progress_bar: true,
+  message_progress_bar: "Progreso"
+});
+
+const modoPrueba = DATAPIPE_ID === "CAMBIAR_POR_TU_ID";
+
+// grupo (set) y codigo de participante desde la URL:  index.html?g=1&p=abc
+const grupo   = jsPsych.data.getURLVariable("g") || "1";
+const pcodigo = jsPsych.data.getURLVariable("p") || "sin_codigo";
+const sujeto  = jsPsych.randomization.randomID(10);
+
+jsPsych.data.addProperties({
+  sujeto: sujeto, grupo: grupo, codigo_participante: pcodigo,
+  set: "S" + grupo, ua: navigator.userAgent
+});
+
+// ============================================================
+// LA PANTALLA SAM: dos filas de maniquies clickeables
+// ============================================================
+function filaSAM(nombre, prefijo, anclaBaja, anclaAlta, etiqueta) {
+  let opts = "";
+  for (let i = 1; i <= 9; i++) {
+    const img = (i % 2 === 1) ? `img/${prefijo}_${i}.png` : "img/sam_intermedio.png";
+    opts += `<label class="sam-opt">
+               <input type="radio" name="${nombre}" value="${i}" required>
+               <img src="${img}" alt="opción ${i}">
+               <span class="num">${i}</span>
+             </label>`;
+  }
+  return `<div class="dim-label">${etiqueta}</div>
+          <div class="sam-row">${opts}</div>
+          <div class="anclas"><span>${anclaBaja}</span><span>${anclaAlta}</span></div>`;
+}
+
+const HTML_SAM =
+  filaSAM("valencia", "val", "muy desagradable", "muy agradable",
+          "¿Cómo te sentirías en esa situación?") +
+  filaSAM("activacion", "aro", "muy calmo", "muy activado",
+          "¿Cuán activado o calmo te sentirías?");
+
+function pantallaSAM(esPractica) {
+  return {
+    type: jsPsychSurveyHtmlForm,
+    preamble: () => {
+      const t = MOSTRAR_SOLO_ID && !jsPsych.evaluateTimelineVariable("control")
+              ? `<span style="font-family:monospace;font-size:1.3rem">${jsPsych.evaluateTimelineVariable("id")}</span>`
+              : jsPsych.evaluateTimelineVariable("texto");
+      return `<div class="texto">${t}</div>`;
+    },
+    html: HTML_SAM,
+    button_label: "Continuar",
+    autocomplete: false,
+    data: {
+      tarea: esPractica ? "practica" : "sam",
+      id_texto: jsPsych.timelineVariable("id"),
+      cuadrante: jsPsych.timelineVariable("cuadrante"),
+      es_control: jsPsych.timelineVariable("control")
+    },
+    on_finish: (d) => {
+      d.valencia = parseInt(d.response.valencia);
+      d.activacion = parseInt(d.response.activacion);
+      if (d.tarea === "sam") d.orden = ++contadorOrden;
+      delete d.response;
+    }
+  };
+}
+let contadorOrden = 0;
+
+// ============================================================
+// TIMELINE
+// ============================================================
+const timeline = [];
+
+timeline.push({ type: jsPsychPreload, images: IMGS, data: { tarea: "preload" } });
+
+timeline.push({
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `<h3>Consentimiento informado</h3>
+    <div class="instr"><p>[Pegá acá tu texto de consentimiento aprobado por el comité.]</p>
+    <p>La participación es voluntaria y anónima. Podés interrumpir en cualquier momento.</p></div>`,
+  choices: ["Acepto participar"],
+  data: { tarea: "consentimiento" }
+});
+
+timeline.push({
+  type: jsPsychSurveyLikert,
+  preamble: `<div class="instr"><p>A continuación vas a leer palabras que describen
+    sentimientos y emociones. Indicá en qué medida te sentís así <b>en este momento</b>.</p></div>`,
+  questions: PANAS_ITEMS.map(t => ({ prompt: t, labels: PANAS_ESCALA, required: true })),
+  button_label: "Continuar",
+  data: { tarea: "panas" }
+});
+
+timeline.push({
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `<div class="instr">
+    <h3>La tarea</h3>
+    <p>Vas a leer situaciones breves, una por pantalla. Para cada una imaginá que
+    te está pasando a vos y respondé dos cosas usando los muñequitos.</p>
+    <p><b>Primera fila:</b> cómo te sentirías, de muy desagradable a muy agradable.</p>
+    <p><b>Segunda fila:</b> cuán activado o calmo te sentirías. Ojo, esto es
+    independiente de lo anterior: se puede estar muy activado y muy bien, o muy
+    activado y muy mal.</p>
+    <p>Hacé clic directamente sobre el muñequito que mejor te represente. No hay
+    respuestas correctas ni incorrectas, y no te detengas demasiado: la primera
+    impresión es la que nos interesa.</p>
+    <p>Vamos con una de práctica.</p></div>`,
+  choices: ["Empezar la práctica"],
+  data: { tarea: "instrucciones" }
+});
+
+timeline.push({
+  timeline: [pantallaSAM(true)],
+  timeline_variables: [PRACTICA]
+});
+
+timeline.push({
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `<div class="instr"><p>Listo. Ahora empieza la tarea.</p></div>`,
+  choices: ["Comenzar"],
+  data: { tarea: "fin_practica" }
+});
+
+// --- los ensayos, en orden aleatorio por participante ---
+const misEstimulos = ESTIMULOS.filter(e => e.set === "S" + grupo);
+timeline.push({
+  timeline: [pantallaSAM(false)],
+  timeline_variables: misEstimulos,
+  randomize_order: true
+});
+
+timeline.push({
+  type: jsPsychSurveyHtmlForm,
+  preamble: `<div class="instr"><h3>Para terminar</h3></div>`,
+  html: `<p style="text-align:left">¿Cuántos años tenés?
+           <input type="number" name="edad" min="18" max="99" required></p>
+         <p style="text-align:left">¿Respondiste con atención durante toda la tarea?
+           <select name="atencion" required>
+             <option value="">--</option><option value="si">Sí</option>
+             <option value="masomenos">Más o menos</option><option value="no">No</option>
+           </select></p>
+         <p style="text-align:left">Comentarios (opcional):<br>
+           <textarea name="comentarios" rows="3" cols="45"></textarea></p>`,
+  button_label: "Enviar",
+  data: { tarea: "cierre" }
+});
+
+if (!modoPrueba) {
+  timeline.push({
+    type: jsPsychPipe,
+    action: "save",
+    experiment_id: DATAPIPE_ID,
+    filename: `${sujeto}_g${grupo}.csv`,
+    data_string: () => jsPsych.data.get().csv()
+  });
+}
+
+timeline.push({
+  type: jsPsychHtmlButtonResponse,
+  stimulus: modoPrueba
+    ? `<div class="instr"><h3>Fin — modo prueba</h3>
+        <p>No se envió nada a ningún servidor. Apretá el botón para bajar el CSV.</p></div>`
+    : `<div class="instr"><h3>Gracias por participar</h3>
+        <p>Ya podés cerrar esta ventana.</p></div>`,
+  choices: modoPrueba ? ["Descargar el CSV"] : [],
+  trial_duration: null,
+  on_start: () => { jsPsych.progressBar.progress = 1; },
+  on_finish: () => {
+    if (modoPrueba) jsPsych.data.get().localSave("csv", `datos_prueba_${sujeto}.csv`);
+  }
+});
+
+jsPsych.run(timeline);
+</script>
+</html>
