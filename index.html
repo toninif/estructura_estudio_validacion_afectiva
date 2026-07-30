@@ -75,8 +75,13 @@ const jsPsych = initJsPsych({
 
 const modoPrueba = DATAPIPE_ID === "CAMBIAR_POR_TU_ID";
 
-// grupo (set) y codigo de participante desde la URL:  index.html?g=1&p=abc
-const grupo   = jsPsych.data.getURLVariable("g") || "1";
+// grupo (set) y codigo de participante desde la URL:  ?g=1&p=abc
+// Sin un ?g= valido NO arranca: un default silencioso mandaria participantes
+// del set 3 a la lista del set 1 sin que nadie se entere.
+const GRUPOS_VALIDOS = ["1", "2", "3", "4"];
+const gParam  = String(jsPsych.data.getURLVariable("g") ?? "");
+const esLocal = location.protocol === "file:";
+const grupo   = GRUPOS_VALIDOS.includes(gParam) ? gParam : (esLocal ? "1" : null);
 const pcodigo = jsPsych.data.getURLVariable("p") || "sin_codigo";
 const sujeto  = jsPsych.randomization.randomID(10);
 
@@ -146,9 +151,10 @@ timeline.push({ type: jsPsychPreload, images: IMGS, data: { tarea: "preload" } }
 
 timeline.push({
   type: jsPsychHtmlButtonResponse,
-  stimulus: `<h3>Consentimiento informado</h3>
+  stimulus: () => `<h3>Consentimiento informado</h3>
     <div class="instr"><p>[Pegá acá tu texto de consentimiento aprobado por el comité.]</p>
-    <p>La participación es voluntaria y anónima. Podés interrumpir en cualquier momento.</p></div>`,
+    <p>La participación es voluntaria y anónima. Podés interrumpir en cualquier momento.</p>
+    <p style="color:#888;font-size:.8rem">Versión ${grupo}</p></div>`,
   choices: ["Acepto participar"],
   data: { tarea: "consentimiento" }
 });
@@ -241,6 +247,16 @@ timeline.push({
   }
 });
 
-jsPsych.run(timeline);
+if (grupo === null) {
+  document.body.innerHTML =
+    '<div style="font-family:sans-serif;max-width:560px;margin:60px auto;padding:24px;' +
+    'text-align:left;background:#fffbe6;border:1px solid #d4a72c;line-height:1.6">' +
+    '<h3 style="margin-top:0">El enlace está incompleto</h3>' +
+    '<p>Falta indicar el grupo. El link tiene que terminar en ' +
+    '<code>/?g=1</code>, <code>/?g=2</code>, <code>/?g=3</code> o <code>/?g=4</code>.</p>' +
+    '<p>Si lo recibiste así, avisale a quien te lo mandó.</p></div>';
+} else {
+  jsPsych.run(timeline);
+}
 </script>
 </html>
