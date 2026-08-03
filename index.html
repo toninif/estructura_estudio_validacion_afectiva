@@ -5,38 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Valoración afectiva de situaciones</title>
 
-<script src="https://unpkg.com/jspsych@8.3.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-survey-likert@2.2.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.1.0"></script>
-<script src="https://unpkg.com/@jspsych-contrib/plugin-pipe@0.6.0"></script>
-<link rel="stylesheet" href="https://unpkg.com/jspsych@8.3.0/css/jspsych.css">
+<!-- Librerias servidas desde el repo, no desde un CDN: si unpkg se cae
+     o la red del aula lo bloquea, el experimento igual arranca. -->
+<script src="lib/jspsych.js"></script>
+<script src="lib/plugin-preload.js"></script>
+<script src="lib/plugin-html-button-response.js"></script>
+<script src="lib/plugin-survey-likert.js"></script>
+<script src="lib/plugin-survey-html-form.js"></script>
+<script src="lib/plugin-pipe.js"></script>
+<link rel="stylesheet" href="lib/jspsych.css">
 
 <script src="estimulos.js"></script>
 
 <style>
-  :root { --sam: clamp(30px, 9.2vw, 52px); }
+  :root { --sam: clamp(28px, 8vw, 52px); }
   body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
-  .jspsych-content { max-width: 720px; }
+
+  /* Aire en los bordes. Sin esto, en celular todo pega contra el vidrio. */
+  .jspsych-display-element { padding: 0 !important; }
+  .jspsych-content-wrapper { padding: 0 4vw !important; box-sizing: border-box; }
+  .jspsych-content { max-width: 680px; padding: 8px 0 32px; }
+
+  /* ---- PANAS: un adjetivo por pantalla, con auto-avance ---- */
+  .panas-adj { font-size: 1.9rem; font-weight: 600; color: #1a2b3c;
+               margin: 8px 0 6px; letter-spacing: -.01em; }
+  .panas-pre { font-size: .9rem; color: #777; margin-bottom: 26px; }
+  .panas-cont { font-size: .78rem; color: #aaa; margin-top: 22px; }
+  #jspsych-html-button-response-btngroup { display: flex; flex-direction: column;
+    gap: 8px; align-items: stretch; max-width: 420px; margin: 0 auto; }
+  .pbtn { display: block; width: 100%; padding: 14px 18px;
+    border: 1.5px solid #ccd4dc; border-radius: 9px; background: #fff;
+    cursor: pointer; text-align: center; font-size: 1rem; color: #33404d;
+    font-family: inherit; line-height: 1.3; }
+  .pbtn:hover { border-color: #1a56d6; background: #f2f6ff; color: #1a56d6; }
+  .pbtn:active { background: #e2ebff; }
+  @media (min-width: 620px) {
+    #jspsych-html-button-response-btngroup { flex-direction: row;
+      max-width: none; align-items: stretch; }
+    .pbtn { display: flex; align-items: center; justify-content: center;
+            padding: 16px 8px; font-size: .9rem; height: 100%; }
+  }
+
+  /* ---- PANAS: numeros en la grilla, leyenda arriba una sola vez ---- */
+  .panas-leyenda { text-align: left; font-size: .82rem; color: #444;
+    background: #f4f6f8; border: 1px solid #dde3e8; border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 18px; line-height: 1.7; }
+  .panas-leyenda b { color: #1a56d6; }
+  .panas-tabla { width: 100%; border-collapse: collapse; }
+  .panas-tabla td { padding: 9px 2px; border-bottom: 1px solid #eee; }
+  .panas-item { text-align: left; font-size: .95rem; padding-right: 8px !important; }
+  .panas-ops { display: flex; gap: clamp(2px, 1.2vw, 8px); justify-content: flex-end; }
+  .panas-op { position: relative; cursor: pointer; }
+  .panas-op input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .panas-op span { display: flex; align-items: center; justify-content: center;
+    width: clamp(30px, 8.5vw, 40px); height: clamp(30px, 8.5vw, 40px);
+    border: 1.5px solid #c3ccd5; border-radius: 50%;
+    font-size: .88rem; color: #555; background: #fff; }
+  .panas-op:hover span { border-color: #8fa3b8; }
+  .panas-op input:checked ~ span { background: #1a56d6; border-color: #1a56d6;
+    color: #fff; font-weight: 600; }
 
   .texto {
     font-size: 1.15rem; line-height: 1.55; text-align: left;
     background: #f7f7f5; border-left: 4px solid #888;
     padding: 14px 16px; margin-bottom: 22px;
   }
-  .dim-label { text-align: left; font-size: .92rem; color: #333;
-               margin: 14px 0 4px; font-weight: 600; }
-  .sam-row { display: flex; gap: 3px; justify-content: center; }
+  .dim-label { text-align: left; font-size: .95rem; color: #2b3a48;
+               margin: 24px 0 8px; font-weight: 600; letter-spacing: .01em; }
+  .sam-row { display: flex; gap: clamp(2px, 0.8vw, 5px); justify-content: center;
+             flex-wrap: nowrap; }
   .sam-opt { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
   .sam-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
   .sam-opt img { width: var(--sam); height: auto; display: block;
                  border: 2px solid transparent; border-radius: 4px; }
   .sam-opt:hover img { border-color: #b9c4cf; }
-  .sam-opt input:checked ~ img { border-color: #1a56d6; background: #e6efff; }
-  .sam-opt .num { font-size: .72rem; color: #666; margin-top: 2px; }
-  .anclas { display: flex; justify-content: space-between;
-            font-size: .75rem; color: #666; margin-top: 2px; }
+  .sam-opt input:checked ~ img { border-color: #1a56d6; background: #e6efff;
+    box-shadow: 0 0 0 2px rgba(26,86,214,.18); }
   .aviso { color: #c0392b; font-size: .85rem; min-height: 1.2em; margin-top: 10px; }
   .instr { text-align: left; line-height: 1.6; }
 </style>
@@ -93,26 +137,22 @@ jsPsych.data.addProperties({
 // ============================================================
 // LA PANTALLA SAM: dos filas de maniquies clickeables
 // ============================================================
-function filaSAM(nombre, prefijo, anclaBaja, anclaAlta, etiqueta) {
+function filaSAM(nombre, prefijo, etiqueta) {
   let opts = "";
   for (let i = 1; i <= 9; i++) {
     const img = (i % 2 === 1) ? `img/${prefijo}_${i}.png` : "img/sam_intermedio.png";
     opts += `<label class="sam-opt">
                <input type="radio" name="${nombre}" value="${i}" required>
-               <img src="${img}" alt="opción ${i}">
-               <span class="num">${i}</span>
+               <img src="${img}" alt="opción ${i} de 9">
              </label>`;
   }
   return `<div class="dim-label">${etiqueta}</div>
-          <div class="sam-row">${opts}</div>
-          <div class="anclas"><span>${anclaBaja}</span><span>${anclaAlta}</span></div>`;
+          <div class="sam-row">${opts}</div>`;
 }
 
 const HTML_SAM =
-  filaSAM("valencia", "val", "muy desagradable", "muy agradable",
-          "¿Cómo te sentirías en esa situación?") +
-  filaSAM("activacion", "aro", "muy calmo", "muy activado",
-          "¿Cuán activado o calmo te sentirías?");
+  filaSAM("valencia", "val", "Valencia") +
+  filaSAM("activacion", "aro", "Activación");
 
 function pantallaSAM(esPractica) {
   return {
@@ -159,13 +199,34 @@ timeline.push({
   data: { tarea: "consentimiento" }
 });
 
+// PANAS: un adjetivo por pantalla. El click responde y avanza solo, sin boton
+// de continuar. enable_button_after evita que un tapeo rapido en celular caiga
+// sobre el item siguiente.
 timeline.push({
-  type: jsPsychSurveyLikert,
-  preamble: `<div class="instr"><p>A continuación vas a leer palabras que describen
-    sentimientos y emociones. Indicá en qué medida te sentís así <b>en este momento</b>.</p></div>`,
-  questions: PANAS_ITEMS.map(t => ({ prompt: t, labels: PANAS_ESCALA, required: true })),
-  button_label: "Continuar",
-  data: { tarea: "panas" }
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `<div class="instr">
+    <p>Vas a ver palabras que describen sentimientos y emociones. Para cada una,
+    indicá en qué medida te sentís así <b>en este momento</b>.</p>
+    <p>Tocá una opción y pasa sola a la siguiente. Son 20 palabras y va rápido:
+    respondé con lo primero que te salga.</p></div>`,
+  choices: ["Empezar"],
+  button_html: (c) => `<button class="jspsych-btn">${c}</button>`,
+  data: { tarea: "instr_panas" }
+});
+
+timeline.push({
+  timeline: [{
+    type: jsPsychHtmlButtonResponse,
+    stimulus: () => `<div class="panas-pre">En este momento me siento...</div>
+       <div class="panas-adj">${jsPsych.evaluateTimelineVariable("adj")}</div>`,
+    choices: PANAS_ESCALA,
+    button_html: (c) => `<button class="pbtn">${c}</button>`,
+    prompt: '<div class="panas-cont">Tocá una opción para continuar</div>',
+    enable_button_after: 300,
+    data: { tarea: "panas", adjetivo: jsPsych.timelineVariable("adj") },
+    on_finish: (d) => { d.puntaje = d.response + 1; }
+  }],
+  timeline_variables: PANAS_ITEMS.map(a => ({ adj: a }))
 });
 
 timeline.push({
@@ -174,10 +235,15 @@ timeline.push({
     <h3>La tarea</h3>
     <p>Vas a leer situaciones breves, una por pantalla. Para cada una imaginá que
     te está pasando a vos y respondé dos cosas usando los muñequitos.</p>
-    <p><b>Primera fila:</b> cómo te sentirías, de muy desagradable a muy agradable.</p>
-    <p><b>Segunda fila:</b> cuán activado o calmo te sentirías. Ojo, esto es
-    independiente de lo anterior: se puede estar muy activado y muy bien, o muy
-    activado y muy mal.</p>
+    <p><b>Valencia</b> es qué tan agradable o desagradable te resultaría.
+    A la izquierda están los muñequitos con cara triste (muy desagradable) y a la
+    derecha los que sonríen (muy agradable).</p>
+    <p><b>Activación</b> es qué tan alterado o calmo te sentirías. A la izquierda
+    el muñequito está quieto (muy calmo) y a la derecha tiene una explosión en el
+    pecho (muy activado). Ojo, esto es independiente de lo anterior: se puede estar
+    muy activado y muy bien, o muy activado y muy mal.</p>
+    <p>En las dos filas podés elegir cualquiera de las nueve posiciones, incluidos
+    los recuadros intermedios entre muñequitos.</p>
     <p>Hacé clic directamente sobre el muñequito que mejor te represente. No hay
     respuestas correctas ni incorrectas, y no te detengas demasiado: la primera
     impresión es la que nos interesa.</p>
@@ -222,39 +288,79 @@ timeline.push({
   data: { tarea: "cierre" }
 });
 
+let guardadoOk = false;
+
 if (!modoPrueba) {
+  // Tres intentos con espera creciente. Con 200 personas terminando casi
+  // a la vez, un 429 o un timeout puntual es esperable; reintentar lo cubre.
   timeline.push({
-    type: jsPsychPipe,
-    action: "save",
-    experiment_id: DATAPIPE_ID,
-    filename: `${sujeto}_g${grupo}.csv`,
-    data_string: () => jsPsych.data.get().csv()
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `<div class="instr"><p>Guardando tus respuestas...</p>
+      <p style="color:#888;font-size:.85rem">No cierres la ventana.</p></div>`,
+    choices: [],
+    trial_duration: 100,
+    data: { tarea: "guardando" },
+    on_finish: async () => {
+      const csv = jsPsych.data.get().csv();
+      for (let intento = 1; intento <= 3 && !guardadoOk; intento++) {
+        try {
+          const r = await fetch("https://pipe.jspsych.org/api/data/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "*/*" },
+            body: JSON.stringify({
+              experimentID: DATAPIPE_ID,
+              filename: `${sujeto}_g${grupo}.csv`,
+              data: csv
+            })
+          });
+          if (r.ok) guardadoOk = true;
+          else await new Promise(res => setTimeout(res, intento * 2000));
+        } catch (e) {
+          await new Promise(res => setTimeout(res, intento * 2000));
+        }
+      }
+    }
   });
 }
 
 timeline.push({
   type: jsPsychHtmlButtonResponse,
-  stimulus: modoPrueba
+  stimulus: () => modoPrueba
     ? `<div class="instr"><h3>Fin — modo prueba</h3>
         <p>No se envió nada a ningún servidor. Apretá el botón para bajar el CSV.</p></div>`
-    : `<div class="instr"><h3>Gracias por participar</h3>
-        <p>Ya podés cerrar esta ventana.</p></div>`,
-  choices: modoPrueba ? ["Descargar el CSV"] : [],
+    : guardadoOk
+      ? `<div class="instr"><h3>Gracias por participar</h3>
+          <p>Tus respuestas se guardaron correctamente. Ya podés cerrar esta ventana.</p></div>`
+      : `<div class="instr"><h3>No se pudieron enviar tus respuestas</h3>
+          <p>Hubo un problema de conexión. Apretá el botón para descargar el archivo
+          y enviáselo por mail a quien te pasó el enlace. Así tu participación no se pierde.</p></div>`,
+  choices: () => (modoPrueba || !guardadoOk) ? ["Descargar el archivo"] : [],
+  data: { tarea: "final" },
   trial_duration: null,
   on_start: () => { jsPsych.progressBar.progress = 1; },
   on_finish: () => {
-    if (modoPrueba) jsPsych.data.get().localSave("csv", `datos_prueba_${sujeto}.csv`);
+    if (modoPrueba || !guardadoOk) jsPsych.data.get().localSave("csv", `RESPALDO_${sujeto}_g${grupo}.csv`);
   }
 });
 
-if (grupo === null) {
+function aviso(titulo, cuerpo) {
   document.body.innerHTML =
     '<div style="font-family:sans-serif;max-width:560px;margin:60px auto;padding:24px;' +
     'text-align:left;background:#fffbe6;border:1px solid #d4a72c;line-height:1.6">' +
-    '<h3 style="margin-top:0">El enlace está incompleto</h3>' +
-    '<p>Falta indicar el grupo. El link tiene que terminar en ' +
-    '<code>/?g=1</code>, <code>/?g=2</code>, <code>/?g=3</code> o <code>/?g=4</code>.</p>' +
-    '<p>Si lo recibiste así, avisale a quien te lo mandó.</p></div>';
+    '<h3 style="margin-top:0">' + titulo + '</h3>' + cuerpo + '</div>';
+}
+
+if (grupo === null) {
+  aviso("El enlace está incompleto",
+    '<p>Falta indicar el grupo. El link tiene que terminar en <code>g1.html</code>, ' +
+    '<code>g2.html</code>, <code>g3.html</code> o <code>g4.html</code>.</p>' +
+    '<p>Si lo recibiste así, avisale a quien te lo mandó.</p>');
+} else if (misEstimulos.length === 0) {
+  aviso("Este grupo todavía no está activo",
+    '<p>El grupo ' + grupo + ' no tiene estímulos cargados. Falta correr ' +
+    '<code>generar_estimulos.R</code> con los 160 textos y subir el ' +
+    '<code>estimulos.js</code> nuevo.</p>' +
+    '<p>(Este aviso es para el investigador, no para participantes.)</p>');
 } else {
   jsPsych.run(timeline);
 }

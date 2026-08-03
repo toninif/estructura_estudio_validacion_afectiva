@@ -299,44 +299,45 @@ const ESTIMULOS = [
   "cuadrante": "control",
   "set": "S1",
   "control": true,
-  "texto": "Esta pantalla es un control de atención. Por favor elegí el muñequito del extremo izquierdo en la primera fila y el del extremo derecho en la segunda."
+  "texto": "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Elegí el muñequito del extremo izquierdo en Valencia y el del extremo derecho en Activación."
  },
  {
   "id": "CHECK_02",
   "cuadrante": "control",
   "set": "S1",
   "control": true,
-  "texto": "Otro control de atención. Elegí el muñequito del medio en las dos filas."
+  "texto": "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Elegí el muñequito del medio en las dos filas."
  }
 ];
 
 const PANAS_ITEMS = [
  "Interesado/a",
- "Tenso/a",
- "Entusiasmado/a",
+ "Afligido/a",
+ // "Emocionado/a",   <-- item 3 del PANAS original (Excited, afecto positivo).
+ //                       Descomentar para tener las dos subescalas balanceadas 10/10.
  "Disgustado/a",
- "Enérgico/a",
+ "Fuerte",
  "Culpable",
- "Atemorizado/a",
+ "Asustado/a",
  "Hostil",
- "Entusiasta",
+ "Entusiasmado/a",
  "Orgulloso/a",
  "Irritable",
- "Alerta",
+ // "Alerta",         <-- item 12 del PANAS original (Alert, afecto positivo).
  "Avergonzado/a",
  "Inspirado/a",
  "Nervioso/a",
  "Decidido/a",
  "Atento/a",
- "Inquieto/a",
+ "Intranquilo/a",
  "Activo/a",
  "Temeroso/a"
 ];
 
 const PANAS_ESCALA = [
- "Nada o casi nada",
+ "Muy poco o nada",
  "Un poco",
  "Moderadamente",
  "Bastante",
- "Muchísimo"
+ "Extremadamente"
 ];
