@@ -186,6 +186,19 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
   background:var(--blanco);margin-top:6px;border-radius:2px}
 .campo:focus-visible{outline:2px solid var(--acento);outline-offset:1px}
 
+/* ── guardando ─────────────────────────────────────────────── */
+.guardando{text-align:center;padding:90px 0 40px}
+.guardando h2{font-family:Newsreader,Georgia,serif;font-weight:300;
+  font-size:clamp(1.5rem,5vw,2rem);margin:0 0 12px}
+.guardando p{color:var(--tinta2);font-size:.95rem;margin:0}
+.puntos{display:flex;gap:8px;justify-content:center;margin:0 0 28px}
+.puntos i{width:9px;height:9px;border-radius:50%;background:var(--acento);
+  opacity:.25;animation:late 1.2s infinite ease-in-out}
+.puntos i:nth-child(2){animation-delay:.18s}
+.puntos i:nth-child(3){animation-delay:.36s}
+@keyframes late{0%,70%,100%{opacity:.25}35%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.puntos i{animation:none;opacity:.6}}
+
 /* ── cierre y avisos ───────────────────────────────────────── */
 .cierre{text-align:center;padding:60px 0 24px}
 .sello{width:60px;height:60px;margin:0 auto 26px;border:1.5px solid var(--acento);
@@ -607,30 +620,45 @@ if (!modoPrueba) {
   // vez, un 429 o un timeout puntual es esperable; reintentar lo cubre.
   timeline.push({
     type: jsPsychHtmlButtonResponse,
-    stimulus: `<div class="instr" style="padding-top:60px">
-      <p>Guardando tus respuestas...</p>
-      <p style="color:var(--tinta3);font-size:.88rem">No cierres la ventana.</p></div>`,
+    stimulus: `<div class="guardando">
+      <div class="puntos"><i></i><i></i><i></i></div>
+      <h2>Guardando tus respuestas</h2>
+      <p id="estadoGuardado">No cierres la ventana.</p></div>`,
     choices: [],
-    trial_duration: 100,
+    // Sin duracion fija: la pantalla se va cuando el envio termina, no antes.
+    // El envio va en on_load (no en on_finish) para que el cartel se vea
+    // DURANTE la espera y no un instante previo.
+    trial_duration: null,
     data: { tarea: "guardando" },
-    on_finish: async () => {
-      const csv = datosLimpios();
-      for (let intento = 1; intento <= 3 && !guardadoOk; intento++) {
-        try {
-          const r = await fetch("https://pipe.jspsych.org/api/data/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "*/*" },
-            body: JSON.stringify({
-              experimentID: DATAPIPE_ID,
-              filename: `${sujeto}_g${grupo}.csv`,
-              data: csv
-            })
-          });
-          if (r.ok) guardadoOk = true;
-          else await new Promise(res => setTimeout(res, intento * 2000));
-        } catch (e) {
-          await new Promise(res => setTimeout(res, intento * 2000));
+    on_load: async () => {
+      const estado = document.getElementById("estadoGuardado");
+      const decir = (t) => { if (estado) estado.textContent = t; };
+      const t0 = performance.now();
+      try {
+        const csv = datosLimpios();
+        for (let intento = 1; intento <= 3 && !guardadoOk; intento++) {
+          if (intento > 1) decir(`Reintentando (${intento} de 3)...`);
+          try {
+            const r = await fetch("https://pipe.jspsych.org/api/data/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "*/*" },
+              body: JSON.stringify({
+                experimentID: DATAPIPE_ID,
+                filename: `${sujeto}_g${grupo}.csv`,
+                data: csv
+              })
+            });
+            if (r.ok) guardadoOk = true;
+            else await new Promise(res => setTimeout(res, intento * 2000));
+          } catch (e) {
+            await new Promise(res => setTimeout(res, intento * 2000));
+          }
         }
+      } finally {
+        // Pase lo que pase, seguir adelante: nunca dejar al participante
+        // colgado en esta pantalla.
+        jsPsych.finishTrial({ ms_guardado: Math.round(performance.now() - t0),
+                              guardado_ok: guardadoOk });
       }
     }
   });
