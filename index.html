@@ -39,6 +39,12 @@
     font-family: inherit; line-height: 1.3; }
   .pbtn:hover { border-color: #1a56d6; background: #f2f6ff; color: #1a56d6; }
   .pbtn:active { background: #e2ebff; }
+  /* confirmacion visual: la elegida se enciende, las otras se apagan */
+  .pbtn[disabled] { cursor: default; opacity: .35; }
+  .pbtn.sel, .pbtn.sel[disabled] {
+    opacity: 1; background: #1a56d6; border-color: #1a56d6; color: #fff;
+    font-weight: 600; box-shadow: 0 0 0 3px rgba(26,86,214,.18); }
+  .pbtn.sel::after { content: " ✓"; }
   @media (min-width: 620px) {
     #jspsych-html-button-response-btngroup { flex-direction: row;
       max-width: none; align-items: stretch; }
@@ -100,11 +106,16 @@ window.addEventListener("error", function (e) {
 // ============================================================
 // CONFIGURACION
 // ============================================================
-const DATAPIPE_ID = "jdbUOy2sY5kS";   // <-- pegar el ID de DataPipe acá
+const DATAPIPE_ID = "jdbUOy2sY5kS";   // experimento "Textos sam ia" en DataPipe
 
 // true  = muestra solo el nombre del estimulo (para pilotear flujo y layout)
 // false = muestra el texto real
 const MOSTRAR_SOLO_ID = true;
+
+// Cuanto queda visible la opcion elegida en el PANAS antes de pasar al
+// siguiente adjetivo, en milisegundos. 400-500 se siente bien; mas de 700
+// se hace lento multiplicado por 18 items.
+const MARCA_MS = 450;
 
 const IMGS = [
   "img/val_1.png","img/val_3.png","img/val_5.png","img/val_7.png","img/val_9.png",
@@ -223,6 +234,25 @@ timeline.push({
     button_html: (c) => `<button class="pbtn">${c}</button>`,
     prompt: '<div class="panas-cont">Tocá una opción para continuar</div>',
     enable_button_after: 300,
+    // El plugin no termina el ensayo solo: lo terminamos nosotros despues de
+    // MARCA_MS, para que la eleccion quede visible antes de avanzar.
+    response_ends_trial: false,
+    trial_duration: null,
+    on_load: () => {
+      const grupo = document.getElementById("jspsych-html-button-response-btngroup");
+      const t0 = performance.now();
+      grupo.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("button");
+        if (!btn || grupo.dataset.listo) return;
+        grupo.dataset.listo = "1";
+        const rt = Math.round(performance.now() - t0);
+        btn.classList.add("sel");
+        jsPsych.pluginAPI.setTimeout(
+          () => jsPsych.finishTrial({ rt: rt, response: parseInt(btn.dataset.choice) }),
+          MARCA_MS
+        );
+      }, true);
+    },
     data: { tarea: "panas", adjetivo: jsPsych.timelineVariable("adj") },
     on_finish: (d) => { d.puntaje = d.response + 1; }
   }],
