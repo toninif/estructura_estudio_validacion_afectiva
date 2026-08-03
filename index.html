@@ -140,10 +140,22 @@ const grupo   = GRUPOS_VALIDOS.includes(gParam) ? gParam : (esLocal ? "1" : null
 const pcodigo = jsPsych.data.getURLVariable("p") || "sin_codigo";
 const sujeto  = jsPsych.randomization.randomID(10);
 
+// Dispositivo resumido en vez del userAgent completo (que ocupaba el 45% del
+// archivo repetido en cada fila). El userAgent entero se guarda una sola vez,
+// al final, en la fila de cierre.
+const esMovil = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
 jsPsych.data.addProperties({
   sujeto: sujeto, grupo: grupo, codigo_participante: pcodigo,
-  set: "S" + grupo, ua: navigator.userAgent
+  set: "S" + grupo, dispositivo: esMovil ? "movil" : "escritorio"
 });
+
+// Columnas que no aportan al analisis y ensucian la planilla.
+// OJO: trial_type NO se puede sacar, DataPipe lo exige para validar.
+const COLS_FUERA = ["stimulus", "response", "plugin_version",
+  "success", "timeout", "failed_images", "failed_audio", "failed_video"];
+
+const datosLimpios = () => jsPsych.data.get().ignore(COLS_FUERA).csv();
 
 // ============================================================
 // LA PANTALLA SAM: dos filas de maniquies clickeables
@@ -315,7 +327,11 @@ timeline.push({
          <p style="text-align:left">Comentarios (opcional):<br>
            <textarea name="comentarios" rows="3" cols="45"></textarea></p>`,
   button_label: "Enviar",
-  data: { tarea: "cierre" }
+  data: { tarea: "cierre" },
+  on_finish: (d) => {
+    d.ua_completo = navigator.userAgent;
+    d.ancho_pantalla = window.screen ? window.screen.width : null;
+  }
 });
 
 let guardadoOk = false;
@@ -331,7 +347,7 @@ if (!modoPrueba) {
     trial_duration: 100,
     data: { tarea: "guardando" },
     on_finish: async () => {
-      const csv = jsPsych.data.get().csv();
+      const csv = datosLimpios();
       for (let intento = 1; intento <= 3 && !guardadoOk; intento++) {
         try {
           const r = await fetch("https://pipe.jspsych.org/api/data/", {
@@ -369,7 +385,10 @@ timeline.push({
   trial_duration: null,
   on_start: () => { jsPsych.progressBar.progress = 1; },
   on_finish: () => {
-    if (modoPrueba || !guardadoOk) jsPsych.data.get().localSave("csv", `RESPALDO_${sujeto}_g${grupo}.csv`);
+    if (modoPrueba || !guardadoOk) {
+      jsPsych.data.get().ignore(COLS_FUERA)
+        .localSave("csv", `RESPALDO_${sujeto}_g${grupo}.csv`);
+    }
   }
 });
 
