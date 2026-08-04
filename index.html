@@ -181,9 +181,19 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
     font-size:.87rem;padding:17px 8px}
 }
 
+/* ── formularios ───────────────────────────────────────────── */
+.campos{margin:0 0 8px}
+.preg{font-size:.98rem;font-weight:500;color:var(--tinta);margin:26px 0 8px}
+.campos > .preg:first-child{margin-top:0}
+.aclara{font-size:.86rem;color:var(--tinta2);margin:-4px 0 10px;line-height:1.5}
+.lista{margin:4px 0 6px;padding-left:20px;color:var(--tinta2);
+  font-size:1rem;line-height:1.66;max-width:58ch}
+.lista li{margin-bottom:11px}
+.lista strong{color:var(--tinta);font-weight:600}
+
 /* ── campos del cierre ─────────────────────────────────────── */
-.campo{font:inherit;padding:9px 11px;border:1px solid var(--linea);
-  background:var(--blanco);margin-top:6px;border-radius:2px}
+.campo{font:inherit;padding:10px 12px;border:1px solid var(--linea);
+  background:var(--blanco);border-radius:2px;display:block;max-width:340px}
 .campo:focus-visible{outline:2px solid var(--acento);outline-offset:1px}
 
 /* ── guardando ─────────────────────────────────────────────── */
@@ -335,16 +345,40 @@ function pantallaSAM(esPractica) {
       cuadrante: jsPsych.timelineVariable("cuadrante"),
       es_control: jsPsych.timelineVariable("control")
     },
-    on_load: estilarBoton,
+    on_load: () => {
+      estilarBoton();
+      // Registro fino: cuando toco por primera vez cada escala y toda la
+      // secuencia de maniquies que fue eligiendo. El evento "change" no se
+      // dispara al reelegir el mismo, asi que cada entrada es un cambio real.
+      reg = { t0: performance.now(), v: [], a: [], tv: null, ta: null };
+      document.querySelectorAll('.fila input[type=radio]').forEach((inp) => {
+        inp.addEventListener("change", () => {
+          const ms = Math.round(performance.now() - reg.t0);
+          if (inp.name === "valencia") {
+            if (reg.tv === null) reg.tv = ms;
+            reg.v.push(inp.value);
+          } else {
+            if (reg.ta === null) reg.ta = ms;
+            reg.a.push(inp.value);
+          }
+        });
+      });
+    },
     on_finish: (d) => {
       d.valencia = parseInt(d.response.valencia);
       d.activacion = parseInt(d.response.activacion);
+      d.t_valencia = reg.tv;
+      d.t_activacion = reg.ta;
+      d.clicks_valencia = reg.v.join("|");
+      d.clicks_activacion = reg.a.join("|");
       if (d.tarea === "sam") d.orden = ++contadorOrden;
       delete d.response;
     }
   };
 }
 let contadorOrden = 0;
+// Se reinicia en cada pantalla de estimulo (ver on_load de pantallaSAM).
+let reg = { t0: 0, v: [], a: [], tv: null, ta: null };
 
 // ============================================================
 // TIMELINE
@@ -475,6 +509,80 @@ timeline.push({
   }
 });
 
+// ── sociodemograficos ───────────────────────────────────────
+timeline.push({
+  type: jsPsychSurveyHtmlForm,
+  preamble: `<p class="eyebrow">Antes de empezar</p>
+    <h1>Unos datos sobre vos</h1>
+    <p class="instr" style="margin-bottom:26px">Ninguno de estos datos permite
+    identificarte. Sirven para describir quiénes participaron.</p>`,
+  html: `
+    <div class="campos">
+      <p class="preg">¿Cuántos años tenés?</p>
+      <input class="campo" type="number" name="edad" min="18" max="99" required
+             style="width:110px">
+
+      <p class="preg">Sexo</p>
+      <select class="campo" name="sexo" required>
+        <option value="">Elegí una opción</option>
+        <option value="mujer">Mujer</option>
+        <option value="varon">Varón</option>
+        <option value="otra">Otra</option>
+        <option value="nc">Prefiero no responder</option>
+      </select>
+
+      <p class="preg">¿Dónde viviste la mayor parte de tu vida hasta los 18 años?</p>
+      <select class="campo" name="region" required>
+        <option value="">Elegí una opción</option>
+        <option value="caba">Ciudad de Buenos Aires</option>
+        <option value="gba">Gran Buenos Aires</option>
+        <option value="pba">Resto de la provincia de Buenos Aires</option>
+        <option value="otra_prov">Otra provincia</option>
+        <option value="otro_pais">Otro país</option>
+      </select>
+
+      <p class="preg">¿El español es tu lengua materna?</p>
+      <select class="campo" name="lengua" required>
+        <option value="">Elegí una opción</option>
+        <option value="si">Sí</option>
+        <option value="no">No</option>
+      </select>
+
+      <p class="preg">¿Ya habías participado antes de este estudio?</p>
+      <select class="campo" name="repetido" required>
+        <option value="">Elegí una opción</option>
+        <option value="no">No, es la primera vez</option>
+        <option value="si">Sí, ya lo hice antes</option>
+      </select>
+    </div>`,
+  button_label: "Continuar",
+  autocomplete: false,
+  data: { tarea: "sociodemograficos" },
+  on_load: estilarBoton
+});
+
+// ── preparacion del entorno ─────────────────────────────────
+timeline.push({
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `<div class="instr">
+    <p class="eyebrow">Antes de empezar</p>
+    <h1>Preparate</h1>
+    <p>La tarea dura unos 15 minutos y no se puede pausar ni retomar más tarde.
+      Para que salga bien, antes de arrancar:</p>
+    <ul class="lista">
+      <li><strong>Silenciá las notificaciones del teléfono.</strong> Si te
+        interrumpen en el medio, se pierde el ritmo de la tarea.</li>
+      <li><strong>No cierres esta ventana ni cambies de aplicación.</strong>
+        Si salís antes de terminar, tus respuestas no se guardan.</li>
+      <li><strong>Si tenés poca batería, enchufá el dispositivo.</strong></li>
+    </ul>
+    <div class="destaque">Cuando estés listo, tocá Comenzar. A partir de ahí
+      seguí hasta el final sin interrupciones.</div></div>`,
+  choices: ["Comenzar"],
+  button_html: unBoton,
+  data: { tarea: "preparacion" }
+});
+
 // ── instrucciones del PANAS ─────────────────────────────────
 timeline.push({
   type: jsPsychHtmlButtonResponse,
@@ -584,23 +692,22 @@ timeline.push({
 // ── cierre ──────────────────────────────────────────────────
 timeline.push({
   type: jsPsychSurveyHtmlForm,
-  preamble: `<p class="eyebrow">Para terminar</p><h1>Unos datos y listo</h1>`,
+  preamble: `<p class="eyebrow">Para terminar</p><h1>Dos cosas y listo</h1>`,
   html: `
-    <div class="info">
-      <p>¿Cuántos años tenés?<br>
-        <input class="campo" type="number" name="edad" min="18" max="99"
-               required style="width:110px"></p>
-      <p style="margin-top:18px">¿Respondiste con atención y sinceridad durante
-        toda la tarea?<br>
-        <select class="campo" name="atencion" required>
-          <option value="">Elegí una opción</option>
-          <option value="si">Sí</option>
-          <option value="masomenos">Más o menos</option>
-          <option value="no">No</option>
-        </select></p>
-      <p style="margin-top:18px">Comentarios (opcional)<br>
-        <textarea class="campo" name="comentarios" rows="3"
-                  style="width:100%;max-width:420px"></textarea></p>
+    <div class="campos">
+      <p class="preg">¿Respondiste con atención y sinceridad durante toda la tarea?</p>
+      <p class="aclara">Contestá con franqueza: saberlo nos ayuda y no tiene
+        ninguna consecuencia para vos.</p>
+      <select class="campo" name="atencion" required>
+        <option value="">Elegí una opción</option>
+        <option value="si">Sí</option>
+        <option value="masomenos">Más o menos</option>
+        <option value="no">No</option>
+      </select>
+
+      <p class="preg">Comentarios (opcional)</p>
+      <textarea class="campo" name="comentarios" rows="3"
+                style="width:100%;max-width:440px"></textarea>
     </div>`,
   button_label: "Enviar",
   autocomplete: false,
