@@ -85,6 +85,10 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
 .btn:focus-visible{outline:2px solid var(--acento);outline-offset:3px}
 .btn[disabled]{opacity:.32;cursor:not-allowed}
 .btn[disabled]:hover{transform:none;box-shadow:none}
+/* boton "tenue" hasta que las dos escalas del texto esten respondidas */
+.btn.espera{background:var(--blanco);color:var(--tinta3);border-color:var(--linea);
+  cursor:not-allowed}
+.btn.espera:hover{transform:none;box-shadow:none}
 
 /* ── portada: informacion y consentimiento ─────────────────── */
 .ficha{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
@@ -362,6 +366,16 @@ function pantallaSAM(esPractica) {
     },
     on_load: () => {
       estilarBoton();
+      const boton = document.querySelector("#jspsych-survey-html-form-next");
+      // El boton arranca "tenue" y recien se activa cuando las DOS escalas
+      // fueron respondidas, para avisarle al participante que ya puede seguir.
+      if (boton) { boton.classList.add("espera"); boton.disabled = true; }
+      const revisarBoton = () => {
+        if (!boton) return;
+        const listo = reg.tv !== null && reg.ta !== null;
+        boton.disabled = !listo;
+        boton.classList.toggle("espera", !listo);
+      };
       // Registro fino: cuando toco por primera vez cada escala y toda la
       // secuencia de maniquies que fue eligiendo. El evento "change" no se
       // dispara al reelegir el mismo, asi que cada entrada es un cambio real.
@@ -376,6 +390,7 @@ function pantallaSAM(esPractica) {
             if (reg.ta === null) reg.ta = ms;
             reg.a.push(inp.value);
           }
+          revisarBoton();
         });
       });
     },
@@ -530,12 +545,12 @@ timeline.push({
       <input class="campo" type="number" name="edad" min="18" max="99" required
              style="width:110px">
 
-      <p class="preg">Sexo</p>
-      <select class="campo" name="sexo" required>
+      <p class="preg">Género</p>
+      <select class="campo" name="genero" required>
         <option value="">Elegí una opción</option>
         <option value="mujer">Mujer</option>
         <option value="varon">Varón</option>
-        <option value="otra">Otra</option>
+        <option value="otro">Otro</option>
         <option value="nc">Prefiero no responder</option>
       </select>
 
@@ -552,11 +567,14 @@ timeline.push({
       <p class="preg">¿Cuál es tu máximo nivel educativo alcanzado?</p>
       <select class="campo" name="educacion" required>
         <option value="">Elegí una opción</option>
-        <option value="secundario_inc">Secundario incompleto</option>
-        <option value="secundario">Secundario completo</option>
-        <option value="terciario_univ_inc">Terciario o universitario en curso o incompleto</option>
-        <option value="terciario_univ">Terciario o universitario completo</option>
-        <option value="posgrado">Posgrado</option>
+        <option value="primaria_inc">Primaria incompleta</option>
+        <option value="primaria">Primaria completa</option>
+        <option value="secundaria_inc">Secundaria incompleta</option>
+        <option value="secundaria">Secundaria completa</option>
+        <option value="terciaria_univ_inc">Terciaria o universitaria incompleta</option>
+        <option value="terciaria_univ">Terciaria o universitaria completa</option>
+        <option value="posgrado_inc">Posgrado incompleto</option>
+        <option value="posgrado">Posgrado completo</option>
       </select>
 
       <p class="preg">¿El español es tu lengua materna?</p>

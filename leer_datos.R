@@ -101,7 +101,7 @@ duracion <- crudo |>
 # Sociodemograficos (ahora al principio del experimento)
 socio <- crudo |>
   filter(tarea == "sociodemograficos") |>
-  select(sujeto, edad, sexo, region, educacion, lengua, repetido)
+  select(sujeto, edad, genero, region, educacion, lengua, repetido)
 
 # --- Autoinforme del cierre (dos sliders 0-100) ---------------------
 # La pantalla final reemplazo el select de atencion por dos escalas continuas.

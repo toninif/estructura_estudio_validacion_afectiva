@@ -18,14 +18,14 @@ const PRACTICA = [
   "cuadrante": "practica",
   "set": "practica",
   "control": false,
-  "texto": "Subís al tren en hora pico. Está lleno y viajás parado, agarrado del pasamanos, mirando por la ventanilla hasta tu parada."
+  "texto": "Subís al tren en hora pico. Está lleno y viajás parado, agarrado del pasamanos, mirando por la ventanilla hasta tu estación."
  },
  {
   "id": "PRAC_03",
   "cuadrante": "practica",
   "set": "practica",
   "control": false,
-  "texto": "Llegás a tu casa y tu perro te recibe moviendo la cola. Le tirás la pelota en el patio y jugás un rato con él bajo el sol."
+  "texto": "Llegás a tu casa y tu perro te recibe moviendo la cola. Te agachás para acariciarle la cabeza."
  }
 ];
 
