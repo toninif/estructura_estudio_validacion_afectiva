@@ -155,6 +155,18 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
   box-shadow:0 0 0 2px var(--acento),0 0 0 6px var(--acento-luz)}
 .op input:focus-visible ~ img{outline:2px solid var(--acento);outline-offset:4px}
 
+/* muñecos de demostracion en las instrucciones: no clickeables */
+.op-demo{cursor:default;line-height:0}
+.op-demo img{width:var(--sam);height:auto;display:block;background:var(--blanco);
+  border:1px solid var(--linea)}
+
+/* ── sliders de autoinforme (cierre) ───────────────────────── */
+.slider-wrap{margin:6px 0 4px}
+.slider-wrap input[type=range]{width:100%;max-width:440px;accent-color:var(--acento);
+  height:26px;cursor:pointer}
+.slider-ext{display:flex;justify-content:space-between;max-width:440px;
+  font-size:.8rem;color:var(--tinta3);margin-top:-2px}
+
 /* ── PANAS ─────────────────────────────────────────────────── */
 .panas-pre{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;
   color:var(--tinta3);font-weight:600;margin:34px 0 10px}
@@ -297,10 +309,13 @@ function estilarBoton() {
 // PANTALLA DEL ESTIMULO (dos filas de maniquies)
 // ============================================================
 function filaSAM(nombre, prefijo, rotulo, pista) {
+  const demo = nombre.startsWith("demo_");
   let o = "";
   for (let i = 1; i <= 9; i++) {
     const img = (i % 2) ? `img/${prefijo}_${i}.png` : "img/sam_intermedio.png";
-    o += `<label class="op">
+    o += demo
+      ? `<span class="op op-demo"><img src="${img}" alt=""></span>`
+      : `<label class="op">
             <input type="radio" name="${nombre}" value="${i}" required>
             <img src="${img}" alt="opción ${i} de 9"></label>`;
   }
@@ -400,70 +415,64 @@ timeline.push({
 
     <p class="banda">Información para el participante</p>
     <div class="info">
-      <p>Se lo está invitando a participar de un trabajo de investigación sobre
-        cómo las personas valoran afectivamente situaciones descritas por escrito.
-        Es importante para Usted entender por qué se lleva a cabo este estudio, a
-        quiénes involucra y sus posibles consecuencias. Por favor, lea esta
-        información y siéntase libre de consultar al investigador si lo desea.</p>
+      <p>Se te está invitando a participar de un trabajo de investigación sobre
+        cómo las personas valoran afectivamente diferentes situaciones cuando las
+        leen. Es importante que entiendas por qué se lleva a cabo este estudio, a
+        quiénes involucra y sus posibles consecuencias. Por favor, leé atentamente
+        esta información.</p>
 
       <h2>¿Cuáles son los propósitos de este estudio?</h2>
       <p>El estudio busca establecer valores normativos de agrado y activación
-        para un conjunto de textos breves en español rioplatense, de modo que
-        puedan usarse como material estandarizado en investigaciones futuras.</p>
+        para un conjunto de textos breves en español rioplatense.</p>
 
       <h2>¿Quiénes participarán de este estudio?</h2>
       <p>Participarán personas mayores de 18 años.</p>
 
-      <h2>¿Debería Usted participar?</h2>
-      <p>Su participación es voluntaria. Será libre de suspender la actividad en
-        el momento que quiera, sin necesidad de dar explicaciones.</p>
+      <h2>¿Deberías participar?</h2>
+      <p>Tu participación es voluntaria y anónima. Podés suspender la actividad en
+        el momento en que quieras, sin necesidad de dar explicaciones.</p>
 
       <h2>¿Qué me pasará si participo de este estudio?</h2>
-      <p>El estudio consiste en responder un cuestionario breve sobre su estado
-        de ánimo actual y luego leer una serie de situaciones cotidianas,
-        indicando para cada una cómo se sentiría. El tiempo total de duración es
-        de aproximadamente 15 minutos.</p>
+      <p>El estudio consiste en responder un cuestionario breve sobre tu estado de
+        ánimo actual y luego leer una serie de situaciones, indicando para cada una
+        cómo te sentirías frente a ellas. El tiempo total de duración es de
+        aproximadamente 15 minutos.</p>
 
       <h2>¿Qué es lo que necesito hacer yo? ¿Cuáles son mis responsabilidades?</h2>
-      <p>Usted deberá estar dispuesto a leer con atención cada situación y
-        responder según su impresión personal. No hay respuestas correctas ni
-        incorrectas.</p>
+      <p>Deberás estar dispuesto a leer con atención cada situación y responder
+        según tu impresión personal. No hay respuestas correctas ni incorrectas.</p>
 
       <h2>¿Existen posibles riesgos o malestares por participar?</h2>
       <p>No hay riesgos asociados a la participación. Algunas de las situaciones
-        describen momentos desagradables y eventualmente Usted podría experimentar
-        algún malestar emocional. En ese caso le solicitamos comunicárselo al
-        profesional y eventualmente suspender la administración.</p>
+        describen momentos que podrían ser desagradables y eventualmente podrías
+        experimentar desagrado.</p>
 
       <h2>¿Cuáles son los posibles beneficios por participar?</h2>
       <p>La información que se obtenga de este estudio podrá ayudar a la mejor
-        comprensión de los procesos emocionales implicados en la lectura, y
-        aportar material estandarizado para la investigación en psicología.</p>
+        comprensión de los procesos emocionales implicados en la lectura y aportar
+        material estandarizado para la investigación en psicología. Los resultados
+        del estudio podrán ser publicados en la literatura científica.</p>
 
       <h2>¿La información recogida será confidencial?</h2>
-      <p>La información recogida será confidencial. No habrá registro de su
-        nombre. Los datos serán almacenados en una computadora, pero su nombre no
-        aparecerá en ningún registro. Los resultados del estudio podrán ser
-        publicados en la literatura científica, pero su identidad no será
-        revelada nunca.</p>
+      <p>La información recogida será anónima y confidencial. No habrá registro de
+        tu nombre ni de ningún tipo de dato que te identifique.</p>
 
       <h2>¿Podré acceder a los resultados de este estudio?</h2>
-      <p>Sí, si Usted lo desea, al finalizar el estudio se le informará sobre los
-        resultados del mismo.</p>
+      <p>Sí, si lo deseas, al finalizar el estudio completo se te informará sobre
+        los resultados del mismo.</p>
     </div>
 
     <p class="banda">Información de contacto</p>
     <div class="info">
-      <p>El investigador a cargo es [NOMBRE DEL INVESTIGADOR RESPONSABLE].
-        Cualquier consulta sobre esta investigación se puede realizar a su e-mail:
-        [CORREO DE CONTACTO]</p>
+      <p>La investigadora a cargo es Natalia Irrazabal. Cualquier consulta sobre
+        esta investigación se puede realizar a su e-mail: nirrazabal@psi.uba.ar</p>
     </div>
 
-    <p class="banda">Confirme que usted quiere hacer esta encuesta</p>
+    <p class="banda">Confirmá que querés hacer esta encuesta</p>
     <p class="preconsent">Doy mi consentimiento para participar del proyecto de
       investigación sobre valoración afectiva de textos. Al aceptar este
-      consentimiento acepto de manera voluntaria participar en esta investigación.
-      Además, dejo constancia que se me informó:</p>`,
+      consentimiento acepto de manera voluntaria y anónima participar en esta
+      investigación. Además, dejo constancia que se me informó:</p>`,
   html: `
     <div class="consent">
       <label class="chk"><input type="checkbox" name="c1" required>
@@ -478,8 +487,7 @@ timeline.push({
         <span class="caja">✓</span>
         <span class="txt">Que se resguardará mi identidad como participante y se
           tomarán los recaudos necesarios para garantizar la confidencialidad de
-          mis datos personales, como así también de cualquier otra información
-          que brinde.</span></label>
+          mis datos, como así también de cualquier otra información que brinde.</span></label>
       <label class="chk"><input type="checkbox" name="c4" required>
         <span class="caja">✓</span>
         <span class="txt">Dejo constancia de haber comprendido que no se me
@@ -541,6 +549,16 @@ timeline.push({
         <option value="otro_pais">Otro país</option>
       </select>
 
+      <p class="preg">¿Cuál es tu máximo nivel educativo alcanzado?</p>
+      <select class="campo" name="educacion" required>
+        <option value="">Elegí una opción</option>
+        <option value="secundario_inc">Secundario incompleto</option>
+        <option value="secundario">Secundario completo</option>
+        <option value="terciario_univ_inc">Terciario o universitario en curso o incompleto</option>
+        <option value="terciario_univ">Terciario o universitario completo</option>
+        <option value="posgrado">Posgrado</option>
+      </select>
+
       <p class="preg">¿El español es tu lengua materna?</p>
       <select class="campo" name="lengua" required>
         <option value="">Elegí una opción</option>
@@ -570,14 +588,11 @@ timeline.push({
     <p>La tarea dura unos 15 minutos y no se puede pausar ni retomar más tarde.
       Para que salga bien, antes de arrancar:</p>
     <ul class="lista">
-      <li><strong>Silenciá las notificaciones del teléfono.</strong> Si te
-        interrumpen en el medio, se pierde el ritmo de la tarea.</li>
       <li><strong>No cierres esta ventana ni cambies de aplicación.</strong>
         Si salís antes de terminar, tus respuestas no se guardan.</li>
-      <li><strong>Si tenés poca batería, enchufá el dispositivo.</strong></li>
     </ul>
     <div class="destaque">Cuando estés listo, tocá Comenzar. A partir de ahí
-      seguí hasta el final sin interrupciones.</div></div>`,
+      seguí hasta la pantalla de cierre sin interrupciones.</div></div>`,
   choices: ["Comenzar"],
   button_html: unBoton,
   data: { tarea: "preparacion" }
@@ -589,6 +604,8 @@ timeline.push({
   stimulus: `<div class="instr">
     <p class="eyebrow">Parte 1 de 2</p>
     <h1>PANAS</h1>
+    <p style="font-size:.95rem;color:var(--tinta2);margin:-8px 0 18px">Escala de
+      Afecto Positivo y Negativo</p>
     <p>Vas a ver una palabra por pantalla. Cada una describe un sentimiento o
       una emoción.</p>
     <p>Para cada palabra, indicá en qué medida te sentís así <strong>en este
@@ -648,27 +665,31 @@ timeline.push({
     <p class="eyebrow">Parte 2 de 2</p>
     <h1>Las situaciones</h1>
     <p>Vas a leer ${N_TEXTOS} situaciones breves, una por pantalla. Para cada una
-      imaginá que te está pasando a vos y respondé dos cosas usando los
-      muñequitos.</p>
-    <p><strong>Valencia</strong> es qué tan agradable o desagradable te
-      resultaría. A la izquierda están los muñequitos con cara triste y a la
-      derecha los que sonríen.</p>
-    <p><strong>Activación</strong> es qué tan alterado o calmo te sentirías. A la
-      izquierda el muñequito está quieto y a la derecha tiene una explosión en el
-      pecho. Esto es independiente de lo anterior: se puede estar muy activado y
-      muy bien, o muy activado y muy mal.</p>
-    <div class="destaque">Podés elegir cualquiera de las nueve posiciones,
-      incluidos los recuadros intermedios entre muñequitos. No hay respuestas
-      correctas ni incorrectas: la primera impresión es la que nos interesa.</div>
-    <p>Vamos con una situación de práctica.</p></div>`,
-  choices: ["Empezar la práctica"],
+      imaginá que te está pasando a vos y respondé dos características (valencia y
+      activación) usando unos muñequitos.</p>
+    <p>Primero, <strong>valencia</strong> significa qué tan agradable o
+      desagradable te resulta la situación. La escala va en aumento desde muy
+      desagradable a muy agradable.</p>
+    ${filaSAM("demo_val", "val", "Valencia")}
+    <p style="margin-top:22px">Segundo, <strong>activación</strong> significa qué
+      tan activado o calmo te sentís frente a la situación. La escala va en aumento
+      desde muy calmo a muy activado. Esto es independiente de lo anterior: se
+      puede estar activado y sentirse bien o activado y sentirse mal. Y lo mismo
+      puede pasar cuando estás calmo.</p>
+    ${filaSAM("demo_aro", "aro", "Activación")}
+    <div class="destaque" style="margin-top:26px">Podés elegir cualquiera de las
+      nueve posiciones, incluidos los recuadros intermedios entre los muñequitos.
+      No hay respuestas correctas ni incorrectas: tu primera impresión es la que
+      nos interesa.</div>
+    <p>Vamos a empezar con tres situaciones de práctica.</p></div>`,
+    choices: ["Empezar la práctica"],
   button_html: unBoton,
   data: { tarea: "instrucciones" }
 });
 
 timeline.push({
   timeline: [pantallaSAM(true)],
-  timeline_variables: [PRACTICA]
+  timeline_variables: PRACTICA
 });
 
 timeline.push({
@@ -692,18 +713,27 @@ timeline.push({
 // ── cierre ──────────────────────────────────────────────────
 timeline.push({
   type: jsPsychSurveyHtmlForm,
-  preamble: `<p class="eyebrow">Para terminar</p><h1>Dos cosas y listo</h1>`,
+  preamble: `<p class="eyebrow">Para terminar</p><h1>Dos cosas y listo</h1>
+    <div class="destaque" style="border-left-color:#B4741F">
+      <strong>No cierres la ventana todavía.</strong> Cuando aprietes Enviar, tus
+      respuestas se guardan. Recién ahí vas a poder cerrar.</div>`,
   html: `
     <div class="campos">
-      <p class="preg">¿Respondiste con atención y sinceridad durante toda la tarea?</p>
+      <p class="preg">¿Cuán concentrado/a estuviste durante la tarea?</p>
       <p class="aclara">Contestá con franqueza: saberlo nos ayuda y no tiene
         ninguna consecuencia para vos.</p>
-      <select class="campo" name="atencion" required>
-        <option value="">Elegí una opción</option>
-        <option value="si">Sí</option>
-        <option value="masomenos">Más o menos</option>
-        <option value="no">No</option>
-      </select>
+      <div class="slider-wrap">
+        <input type="range" name="concentracion" min="0" max="100" value="50" required>
+        <div class="slider-ext"><span>Nada concentrado/a</span><span>Muy concentrado/a</span></div>
+      </div>
+
+      <p class="preg">¿Cuán sincero/a fuiste en tus respuestas?</p>
+      <p class="aclara">Contestá con franqueza: saberlo nos ayuda y no tiene
+        ninguna consecuencia para vos.</p>
+      <div class="slider-wrap">
+        <input type="range" name="sinceridad" min="0" max="100" value="50" required>
+        <div class="slider-ext"><span>Nada sincero/a</span><span>Muy sincero/a</span></div>
+      </div>
 
       <p class="preg">Comentarios (opcional)</p>
       <textarea class="campo" name="comentarios" rows="3"
@@ -779,8 +809,8 @@ timeline.push({
        bajar el CSV.</p></div>`
     : guardadoOk
       ? `<div class="cierre"><div class="sello">✓</div><h1>Listo</h1>
-         <p class="bajada">Tus respuestas quedaron guardadas. Gracias por el
-         tiempo.</p></div>`
+         <p class="bajada">Tus respuestas quedaron guardadas. Ya podés cerrar esta
+         ventana. Gracias por el tiempo.</p></div>`
       : `<div class="cierre"><h1>No se pudieron enviar tus respuestas</h1>
          <p class="bajada">Hubo un problema de conexión. Apretá el botón para
          descargar el archivo y enviáselo por mail a quien te pasó el enlace.

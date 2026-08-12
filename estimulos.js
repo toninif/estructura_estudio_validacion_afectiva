@@ -5,13 +5,29 @@
 // Para los otros sets, regenerar con generar_estimulos.R
 // ============================================================
 
-const PRACTICA = {
- "id": "PRAC_01",
- "cuadrante": "practica",
- "set": "practica",
- "texto": "Esperás el colectivo en la parada. Mirás la pantalla, faltan seis minutos. Guardás el celular en el bolsillo.",
- "control": false
-};
+const PRACTICA = [
+ {
+  "id": "PRAC_01",
+  "cuadrante": "practica",
+  "set": "practica",
+  "texto": "Esperás el colectivo en la parada. Mirás la pantalla, faltan seis minutos. Guardás el celular en el bolsillo.",
+  "control": false
+ },
+ {
+  "id": "PRAC_02",
+  "cuadrante": "practica",
+  "set": "practica",
+  "control": false,
+  "texto": "Subís al tren en hora pico. Está lleno y viajás parado, agarrado del pasamanos, mirando por la ventanilla hasta tu parada."
+ },
+ {
+  "id": "PRAC_03",
+  "cuadrante": "practica",
+  "set": "practica",
+  "control": false,
+  "texto": "Llegás a tu casa y tu perro te recibe moviendo la cola. Le tirás la pelota en el patio y jugás un rato con él bajo el sol."
+ }
+];
 
 const ESTIMULOS = [
  {
@@ -306,7 +322,7 @@ const ESTIMULOS = [
   "cuadrante": "control",
   "set": "S1",
   "control": true,
-  "texto": "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Elegí el muñequito del medio en las dos filas."
+  "texto": "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Elegí el tercer muñequito en Valencia y el quinto en Activación."
  }
 ];
 
