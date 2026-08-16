@@ -81,13 +81,16 @@ panas <- panas |>
 
 
 # --- 4. Controles de atencion y exclusiones --------------------------
-# CHECK_01 espera valencia = 1 y activacion = 9
-# CHECK_02 espera valencia = 5 y activacion = 5
+# Los checks piden "casillas" contando las NUEVE posiciones de la escala
+# (muñequitos y recuadros intermedios por igual, de izquierda a derecha):
+#   CHECK_01 (posicion 11): tercera casilla en valencia = 3
+#                           quinta casilla en activacion = 5
+#   CHECK_02 (posicion 32): casilla central en ambas = 5
 controles <- crudo |>
   filter(tarea == "sam", es_control) |>
   select(sujeto, id_texto, valencia, activacion) |>
   mutate(paso = case_when(
-    id_texto == "CHECK_01" & valencia == 1 & activacion == 9 ~ TRUE,
+    id_texto == "CHECK_01" & valencia == 3 & activacion == 5 ~ TRUE,
     id_texto == "CHECK_02" & valencia == 5 & activacion == 5 ~ TRUE,
     TRUE ~ FALSE)) |>
   group_by(sujeto) |>

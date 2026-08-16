@@ -1,46 +1,52 @@
 # ============================================================
-# Genera estimulos.js con los 160 textos y su set asignado.
-# Requiere: asignacion_sets.csv (id, cuadrante, factores, set)
-#           y tu tabla de textos (id, texto)
+# generar_estimulos.R
+# Regenera estimulos.js a partir del Excel de asignacion.
+#
+# Fuente de verdad: asignacion_grupos_experimentales.xlsx
+#   - una hoja por grupo ("Grupo 1"..."Grupo 4")
+#   - columnas: orden, id, cuadrante, SEMANTICA, f_*, texto
+#
+# Uso: poner el xlsx al lado de este script y correrlo entero.
+# El bloque ESTIMULOS de estimulos.js se reemplaza; PRACTICA,
+# PANAS_ITEMS y PANAS_ESCALA quedan como estan.
 # ============================================================
 
+library(readxl)
 library(jsonlite)
+library(purrr)
+library(dplyr)
 
-asign  <- read.csv("asignacion_sets.csv", stringsAsFactors = FALSE)
-textos <- read.delim("textos.tsv", stringsAsFactors = FALSE)   # id + texto
+XLSX <- "asignacion_grupos_experimentales.xlsx"
 
-d <- merge(asign[, c("id", "cuadrante", "set")], textos[, c("id", "texto")], by = "id")
-stopifnot(nrow(d) == 160, !any(is.na(d$texto)))
+datos <- map_dfr(1:4, function(g) {
+  read_excel(XLSX, sheet = paste("Grupo", g)) |>
+    transmute(id, cuadrante, set = paste0("S", g), texto, control = FALSE)
+})
 
-# el experimento filtra por ?g=N, asi que van los 160 en un solo archivo
-# y cada participante ve solo los 40 de su set
-json_est <- toJSON(d[, c("id", "cuadrante", "set", "texto")],
-                   pretty = TRUE, auto_unbox = TRUE)
+stopifnot(nrow(datos) == 160, n_distinct(datos$id) == 160)
 
-practica <- toJSON(list(
-  id = "PRAC_01", cuadrante = "practica", set = "practica",
-  texto = "Esperás el colectivo en la parada. Mirás la pantalla, faltan seis minutos. Guardás el celular en el bolsillo."
-), pretty = TRUE, auto_unbox = TRUE)
+# Controles de atencion: presentes en los cuatro sets.
+# OJO con la regla de exclusion: los maniquies ocupan las posiciones
+# 1-3-5-7-9, asi que "tercer muñequito" = posicion 5 y "quinto" = 9.
+checks <- tidyr::crossing(
+  set = paste0("S", 1:4),
+  tibble(
+    id = c("CHECK_01", "CHECK_02"),
+    cuadrante = "control",
+    texto = c(
+      "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Clickea la tercera casilla en valencia y la quinta casilla en activación.",
+      "CONTROL DE ATENCIÓN. Esta pantalla no es una situación: sirve para verificar que estás leyendo. Clickea la casilla central en valencia y la casilla central en activación."
+    ),
+    control = TRUE
+  )
+) |> select(id, cuadrante, set, texto, control)
 
-panas_items <- c(
-  "Interesado/a", "Tenso/a", "Entusiasmado/a", "Disgustado/a", "Enérgico/a",
-  "Culpable", "Atemorizado/a", "Hostil", "Entusiasta", "Orgulloso/a",
-  "Irritable", "Alerta", "Avergonzado/a", "Inspirado/a", "Nervioso/a",
-  "Decidido/a", "Atento/a", "Inquieto/a", "Activo/a", "Temeroso/a"
-)
+estimulos <- bind_rows(datos, checks)
 
-writeLines(c(
-  "// GENERADO POR generar_estimulos.R - no editar a mano",
-  paste0("const PRACTICA = ", practica, ";"),
-  "",
-  paste0("const ESTIMULOS = ", json_est, ";"),
-  "",
-  paste0("const PANAS_ITEMS = ", toJSON(panas_items, pretty = TRUE), ";"),
-  "",
-  paste0("const PANAS_ESCALA = ", toJSON(c(
-    "Nada o casi nada", "Un poco", "Moderadamente", "Bastante", "Muchísimo"
-  ), pretty = TRUE), ";")
-), "estimulos.js", useBytes = TRUE)
+js <- readLines("estimulos.js", encoding = "UTF-8") |> paste(collapse = "\n")
+bloque <- paste0("const ESTIMULOS = ",
+                 toJSON(estimulos, auto_unbox = TRUE, pretty = TRUE), ";")
+js <- sub("const ESTIMULOS = \\[.*?\\];", bloque, js, perl = TRUE)
+writeLines(js, "estimulos.js", useBytes = TRUE)
 
-cat("estimulos.js generado con", nrow(d), "textos\n")
-cat("por set:\n"); print(table(d$set))
+cat("estimulos.js regenerado:", nrow(estimulos), "entradas\n")

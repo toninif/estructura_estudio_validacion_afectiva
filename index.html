@@ -38,8 +38,11 @@ window.addEventListener("error", function (e) {
   --linea:#D3D6D0;
   --acento:#2F6152;
   --acento-luz:#E3EDE8;
-  --sam:clamp(30px,8.4vw,54px);
-  --gap:clamp(2px,.9vw,6px);
+  /* muñecos protagonistas, intermedios discretos pero con blanco tactil ancho */
+  --sam:clamp(32px,10vw,60px);          /* muñequitos */
+  --sam-int:clamp(18px,5.6vw,34px);     /* recuadro intermedio VISIBLE */
+  --sam-int-touch:clamp(26px,7.6vw,44px); /* area clickeable del intermedio */
+  --gap:clamp(2px,.7vw,5px);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -149,11 +152,16 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
   font-weight:700;margin:0}
 .dim-cab .pista{display:block;font-size:.86rem;color:var(--tinta2);margin-top:5px;
   font-weight:400;letter-spacing:0;text-transform:none}
-.fila{display:flex;gap:var(--gap);justify-content:center}
+.fila{display:flex;gap:var(--gap);justify-content:center;align-items:center}
 .op{position:relative;cursor:pointer;line-height:0}
 .op input{position:absolute;opacity:0;width:0;height:0}
 .op img{width:var(--sam);height:auto;display:block;background:var(--blanco);
   border:1px solid var(--linea);transition:border-color .13s,box-shadow .13s}
+/* recuadros intermedios: visualmente menores (jerarquia hacia los muñecos)
+   pero con un area de toque que NO se achica, para que el dedo no falle */
+.op-inter{display:flex;align-items:center;justify-content:center;
+  min-width:var(--sam-int-touch);min-height:var(--sam);cursor:pointer}
+.op-inter img{width:var(--sam-int)}
 .op:hover img{border-color:var(--tinta3)}
 .op input:checked ~ img{border-color:var(--acento);
   box-shadow:0 0 0 2px var(--acento),0 0 0 6px var(--acento-luz)}
@@ -163,6 +171,8 @@ h1{font-family:Newsreader,Georgia,serif;font-weight:300;
 .op-demo{cursor:default;line-height:0}
 .op-demo img{width:var(--sam);height:auto;display:block;background:var(--blanco);
   border:1px solid var(--linea)}
+.op-demo.op-inter{cursor:default}
+.op-demo.op-inter img{width:var(--sam-int)}
 
 /* ── sliders de autoinforme (cierre) ───────────────────────── */
 .slider-wrap{margin:6px 0 4px}
@@ -317,9 +327,10 @@ function filaSAM(nombre, prefijo, rotulo, pista) {
   let o = "";
   for (let i = 1; i <= 9; i++) {
     const img = (i % 2) ? `img/${prefijo}_${i}.png` : "img/sam_intermedio.png";
+    const inter = (i % 2 === 0) ? " op-inter" : "";
     o += demo
-      ? `<span class="op op-demo"><img src="${img}" alt=""></span>`
-      : `<label class="op">
+      ? `<span class="op op-demo${inter}"><img src="${img}" alt=""></span>`
+      : `<label class="op${inter}">
             <input type="radio" name="${nombre}" value="${i}" required>
             <img src="${img}" alt="opción ${i} de 9"></label>`;
   }
@@ -721,11 +732,28 @@ timeline.push({
   data: { tarea: "fin_practica" }
 });
 
-// ── los ensayos, en orden aleatorio por participante ────────
+// ── los ensayos: tres bloques con controles en posicion fija ─
+// Los 40 textos se mezclan al azar por participante, pero los controles
+// caen SIEMPRE en las posiciones 11 y 32 (tras 10 y tras 30 textos).
+// Asi son comparables entre participantes: fallar el control temprano o
+// el tardio significa lo mismo para todos.
+const soloTextos = jsPsych.randomization.shuffle(misEstimulos.filter(e => !e.control));
+const controles  = misEstimulos.filter(e => e.control);   // CHECK_01, CHECK_02
+
+const secuencia = (soloTextos.length >= 40 && controles.length === 2)
+  ? [
+      ...soloTextos.slice(0, 10),    // bloque 1: 10 textos
+      controles[0],                  // posicion 11
+      ...soloTextos.slice(10, 30),   // bloque 2: 20 textos
+      controles[1],                  // posicion 32
+      ...soloTextos.slice(30)        // bloque 3: 10 textos
+    ]
+  : jsPsych.randomization.shuffle(misEstimulos);  // resguardo si algo no cuadra
+
 timeline.push({
   timeline: [pantallaSAM(false)],
-  timeline_variables: misEstimulos,
-  randomize_order: true
+  timeline_variables: secuencia,
+  randomize_order: false
 });
 
 // ── cierre ──────────────────────────────────────────────────
