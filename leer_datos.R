@@ -104,13 +104,17 @@ duracion <- crudo |>
 # Sociodemograficos (ahora al principio del experimento)
 socio <- crudo |>
   filter(tarea == "sociodemograficos") |>
-  select(sujeto, edad, genero, region, educacion, lengua, repetido)
+  select(sujeto, edad, genero, region, educacion, nse, lengua, repetido)
 
 # --- Autoinforme del cierre (dos sliders 0-100) ---------------------
 # La pantalla final reemplazo el select de atencion por dos escalas continuas.
 autoinforme <- crudo |>
   filter(tarea == "cierre") |>
-  select(sujeto, concentracion, sinceridad)
+  select(sujeto, concentracion, sinceridad,
+         ip, navegador, so, ancho_pantalla, alto_pantalla, ua_completo)
+# OJO: la IP es dato personal (Ley 25.326). No publicarla junto a los datos:
+# usarla solo para control de calidad (duplicados, red del aula) y eliminarla
+# o separarla del dataset antes de compartirlo en OSF.
 # regla de exclusion sugerida (preregistrar antes de recolectar):
 #   excluir por baja concentracion/sinceridad autoinformada, p.ej. < 30
 

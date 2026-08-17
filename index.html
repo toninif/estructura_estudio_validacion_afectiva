@@ -256,7 +256,7 @@ const DATAPIPE_ID = "jdbUOy2sY5kS";   // experimento "Textos sam ia" en DataPipe
 
 // true  = muestra solo el nombre del estimulo (para pilotear flujo y layout)
 // false = muestra el texto real
-const MOSTRAR_SOLO_ID = true;
+const MOSTRAR_SOLO_ID = false;
 
 // Cuanto queda visible la opcion elegida en el PANAS antes de avanzar (ms).
 const MARCA_MS = 450;
@@ -282,6 +282,36 @@ const pcodigo = jsPsych.data.getURLVariable("p") || "sin_codigo";
 const sujeto  = jsPsych.randomization.randomID(10);
 
 const esMovil = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+// Navegador y sistema operativo, parseados del userAgent.
+// El orden de los chequeos importa: Edge y Opera tambien dicen "Chrome",
+// y todo lo que corre en iOS dice "Safari".
+function detectarNavegador(ua) {
+  if (/Edg\//.test(ua)) return "Edge";
+  if (/OPR\/|Opera/.test(ua)) return "Opera";
+  if (/SamsungBrowser/.test(ua)) return "Samsung Internet";
+  if (/Firefox\//.test(ua)) return "Firefox";
+  if (/Chrome\//.test(ua)) return "Chrome";
+  if (/Safari\//.test(ua)) return "Safari";
+  return "otro";
+}
+function detectarSO(ua) {
+  if (/Android/.test(ua)) return "Android";
+  if (/iPhone|iPad|iPod/.test(ua)) return "iOS";
+  if (/Windows/.test(ua)) return "Windows";
+  if (/Macintosh/.test(ua)) return "macOS";
+  if (/Linux/.test(ua)) return "Linux";
+  return "otro";
+}
+
+// IP publica: el navegador no la conoce, hay que preguntarsela a un servicio
+// externo. Se pide al arrancar, en paralelo, y NUNCA bloquea: si el servicio
+// falla o la red del aula lo corta, la columna queda vacia y no pasa nada.
+let ipPublica = null;
+fetch("https://api.ipify.org?format=json")
+  .then(r => r.json())
+  .then(d => { ipPublica = d.ip; })
+  .catch(() => {});
 
 jsPsych.data.addProperties({
   sujeto: sujeto, grupo: grupo, codigo_participante: pcodigo,
@@ -588,6 +618,16 @@ timeline.push({
         <option value="posgrado">Posgrado completo</option>
       </select>
 
+      <p class="preg">¿En qué nivel socioeconómico considerás que te ubicás?</p>
+      <select class="campo" name="nse" required>
+        <option value="">Elegí una opción</option>
+        <option value="bajo">Bajo</option>
+        <option value="medio_bajo">Medio bajo</option>
+        <option value="medio">Medio</option>
+        <option value="medio_alto">Medio alto</option>
+        <option value="alto">Alto</option>
+      </select>
+
       <p class="preg">¿El español es tu lengua materna?</p>
       <select class="campo" name="lengua" required>
         <option value="">Elegí una opción</option>
@@ -791,7 +831,12 @@ timeline.push({
   on_load: estilarBoton,
   on_finish: (d) => {
     d.ua_completo = navigator.userAgent;
+    d.navegador = detectarNavegador(navigator.userAgent);
+    d.so = detectarSO(navigator.userAgent);
     d.ancho_pantalla = window.screen ? window.screen.width : null;
+    d.alto_pantalla = window.screen ? window.screen.height : null;
+    d.ancho_ventana = window.innerWidth || null;
+    d.ip = ipPublica;   // null si el servicio de IP no respondio
   }
 });
 
