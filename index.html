@@ -839,7 +839,14 @@ timeline.push({
   on_finish: (d) => {
     Object.assign(d, d.response);   // concentracion, sinceridad, comentarios
     delete d.response;
-    d.ua_completo = navigator.userAgent;
+    if (d.comentarios) {
+      d.comentarios = String(d.comentarios)
+        .replace(/[\r\n]+/g, " / ")   // saltos de linea rompen la fila entera
+        .replace(/,/g, ";");
+    }
+    // Sin comas: los userAgent traen "(KHTML, like Gecko)" y eso rompe el
+    // "texto en columnas" de Excel, que parte por comas ignorando comillas.
+    d.ua_completo = navigator.userAgent.replace(/,/g, ";");
     d.navegador = detectarNavegador(navigator.userAgent);
     d.so = detectarSO(navigator.userAgent);
     d.ancho_pantalla = window.screen ? window.screen.width : null;
@@ -874,6 +881,10 @@ if (!modoPrueba) {
       const decir = (t) => { if (estado) estado.textContent = t; };
       const t0 = performance.now();
       try {
+        // El propio trial de guardado termina DESPUES del envio, asi que sus
+        // datos no pueden viajar en el archivo. La fecha de envio se estampa
+        // en la ultima fila ya cerrada (el cierre) antes de armar el CSV.
+        jsPsych.data.get().addToLast({ fecha_envio: new Date().toISOString() });
         const csv = datosLimpios();
         for (let intento = 1; intento <= 3 && !guardadoOk; intento++) {
           if (intento > 1) decir(`Reintentando (${intento} de 3)...`);
