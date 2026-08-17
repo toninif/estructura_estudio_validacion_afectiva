@@ -307,6 +307,10 @@ function detectarSO(ua) {
 // IP publica: el navegador no la conoce, hay que preguntarsela a un servicio
 // externo. Se pide al arrancar, en paralelo, y NUNCA bloquea: si el servicio
 // falla o la red del aula lo corta, la columna queda vacia y no pasa nada.
+// Momento de inicio de la sesion. time_elapsed es relativo a esto, pero sin
+// esta marca absoluta no se sabe CUANDO ocurrio la sesion.
+const fechaInicio = new Date();
+
 let ipPublica = null;
 fetch("https://api.ipify.org?format=json")
   .then(r => r.json())
@@ -645,7 +649,10 @@ timeline.push({
   button_label: "Continuar",
   autocomplete: false,
   data: { tarea: "sociodemograficos" },
-  on_load: estilarBoton
+  on_load: estilarBoton,
+  // Las respuestas del formulario llegan dentro de "response", que el filtro
+  // de columnas descarta antes de enviar. Extraerlas a columnas propias.
+  on_finish: (d) => { Object.assign(d, d.response); delete d.response; }
 });
 
 // ── preparacion del entorno ─────────────────────────────────
@@ -830,6 +837,8 @@ timeline.push({
   data: { tarea: "cierre" },
   on_load: estilarBoton,
   on_finish: (d) => {
+    Object.assign(d, d.response);   // concentracion, sinceridad, comentarios
+    delete d.response;
     d.ua_completo = navigator.userAgent;
     d.navegador = detectarNavegador(navigator.userAgent);
     d.so = detectarSO(navigator.userAgent);
@@ -837,6 +846,8 @@ timeline.push({
     d.alto_pantalla = window.screen ? window.screen.height : null;
     d.ancho_ventana = window.innerWidth || null;
     d.ip = ipPublica;   // null si el servicio de IP no respondio
+    d.fecha_inicio = fechaInicio.toISOString();       // UTC
+    d.huso_min = -fechaInicio.getTimezoneOffset();    // Argentina = -180
   }
 });
 
@@ -886,7 +897,8 @@ if (!modoPrueba) {
         // Pase lo que pase, seguir adelante: nunca dejar al participante
         // colgado en esta pantalla.
         jsPsych.finishTrial({ ms_guardado: Math.round(performance.now() - t0),
-                              guardado_ok: guardadoOk });
+                              guardado_ok: guardadoOk,
+                              fecha_envio: new Date().toISOString() });
       }
     }
   });
