@@ -8,7 +8,7 @@ correr en aula o de forma remota, con guardado automático a
 [DataPipe](https://pipe.jspsych.org/) y respaldo local si la red falla.
 
 > Este repo es un **esqueleto**: trae la maquinaria armada y probada, pero **no**
-> trae textos de estímulo. Para usarlo, enchufás tus propios textos, tu experimento
+> trae textos de estímulo. Para usarlo, enchufás tus propios textos, tu estudio
 > de DataPipe y tu texto de consentimiento. Ver [Qué reemplazar antes de
 > reutilizar](#qué-reemplazar-antes-de-reutilizar).
 
@@ -51,7 +51,7 @@ atención** en posiciones fijas y un cierre con dos preguntas de autorreporte
 └── README.md
 ```
 
-- **`index.html`** es el único archivo que corre el experimento. `g1.html`…`g4.html` son
+- **`index.html`** es el único archivo que corre el estudio. `g1.html`…`g4.html` son
   redirecciones cómodas: abrir `g2.html` equivale a abrir `index.html?g=2`.
 - **`lib/`**, **`fuentes/`** e **`img/`** son andamiaje reutilizable tal cual. No hace falta
   tocarlos salvo que quieras cambiar la estética o las imágenes de las escalas.
@@ -142,8 +142,6 @@ El script tiene un chequeo (`stopifnot`) que asume **160 textos en total** (40 p
 todos con id distinto). Si tu diseño usa otra cantidad de textos o de grupos, hay que
 ajustar ese chequeo y la lógica asociada — ver [Adaptar el diseño](#adaptar-el-diseño-a-tu-estudio).
 
-> El Excel de asignación **no** se incluye en el repo a propósito: es la fuente de verdad
-> de los textos y se mantiene fuera de la copia pública.
 
 ---
 
@@ -195,11 +193,9 @@ Checklist para que la plantilla no arrastre nada del estudio original:
 - [ ] **`estimulos.js` → `ESTIMULOS`**: tus textos (o corré `generar_estimulos.R` con tu Excel).
 - [ ] **`estimulos.js` → `PRACTICA`**: los 3 textos de práctica actuales son de ejemplo; reemplazalos o dejalos según te sirvan.
 - [ ] **`index.html` → `DATAPIPE_ID`**: tu ID de DataPipe. Si no, los datos de quien use la plantilla se escriben en el experimento original.
-- [ ] **`index.html` → bloque de consentimiento y contacto** (portada, aprox. líneas 465–560): **hoy trae nombre y e-mail de la investigadora a cargo** (`Natalia Irrazabal — nirrazabal@psi.uba.ar`, aprox. líneas 525–528) y un texto de consentimiento específico. Reemplazalos por tus datos y por el texto de consentimiento aprobado por **tu** comité de ética.
+- [ ] **`index.html` → bloque de consentimiento y contacto** (portada, aprox. líneas 465–560). Reemplazalos por tus datos y por el texto de consentimiento aprobado por **tu** comité de ética.
 - [ ] **`index.html` → información de portada**: título del estudio, descripción y toda referencia institucional.
 - [ ] **`estimulos.js` → `PANAS_ITEMS` / `PANAS_ESCALA`**: si usás otro instrumento o traducción.
-- [ ] **`README.md`, `LICENSE`, cómo citar**: completá las secciones de abajo (hoy son placeholders).
-- [ ] Borrá archivos de trabajo que no correspondan a la plantilla (por ejemplo notas sueltas de cambios).
 
 Lo que **no** hace falta tocar (reutilizable tal cual): `lib/`, `fuentes/`, `img/` y todo el
 motor del timeline.
@@ -246,14 +242,4 @@ tocar:
 
 ---
 
-## Licencia
 
-<!-- COMPLETAR: elegí una licencia (por ej. MIT para el código, CC-BY para materiales) y agregá el archivo LICENSE. -->
-
-## Créditos
-
-<!-- COMPLETAR: autoría, institución y financiamiento. -->
-
-## Cómo citar
-
-<!-- COMPLETAR: referencia sugerida (paper y/o repositorio con DOI de OSF/Zenodo). -->
